@@ -46,6 +46,25 @@ def traverse_dependencies( destination, traversed ):
                                      os.path.join( destination, dependency ),
                                      ignore = shutil.ignore_patterns("dependencies") )
 
+                    gitfilename = os.path.join( destination, dependency, ".git" )
+
+                    gitfile = open( gitfilename, 'r' )
+                    gitline = gitfile.readline()
+                    gitfile.close()
+
+                    gitdir = gitline.split(' ')[1].split('\n')[0]
+
+                    if os.path.isabs( gitdir ):
+                        return
+
+                    gitdir = os.path.abspath( gitdir )
+
+                    gitline = gitline.split(' ')[0] + ' ' + gitdir + '\n'
+
+                    gitfile = open( gitfilename, 'w' )
+                    gitfile.write( gitline )
+                    gitfile.close()
+
             traverse_dependencies( destination, traversed )
             os.chdir( ".." )
             
