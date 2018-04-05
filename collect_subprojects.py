@@ -33,6 +33,23 @@ def traverse_dependencies( destination, traversed ):
             traversed.add( dependency )
             os.chdir( dependency )
             if not os.path.isdir( os.path.join( destination, dependency ) ):
+                gitfile = open( ".git", 'r' )
+                gitline = gitfile.readline()
+                gitfile.close()
+
+                gitdir = gitline.split(' ')[1].split('\n')[0]
+
+                if not os.path.isabs( gitdir ):
+                    gitdir = os.path.abspath( gitdir )
+    
+                    gitline = gitline.split(' ')[0] + ' ' + gitdir + '\n'
+
+                    os.remove( ".git" )
+    
+                    gitfile = open( ".git", 'w' )
+                    gitfile.write( gitline )
+                    gitfile.close()
+
                 try:
                     os.symlink( os.getcwd(),
                                 os.path.join( destination, dependency ) )
@@ -45,25 +62,6 @@ def traverse_dependencies( destination, traversed ):
                     shutil.copytree( os.getcwd(),
                                      os.path.join( destination, dependency ),
                                      ignore = shutil.ignore_patterns("dependencies") )
-
-                    gitfilename = os.path.join( destination, dependency, ".git" )
-
-                    gitfile = open( gitfilename, 'r' )
-                    gitline = gitfile.readline()
-                    gitfile.close()
-
-                    gitdir = gitline.split(' ')[1].split('\n')[0]
-
-                    if os.path.isabs( gitdir ):
-                        return
-
-                    gitdir = os.path.abspath( gitdir )
-
-                    gitline = gitline.split(' ')[0] + ' ' + gitdir + '\n'
-
-                    gitfile = open( gitfilename, 'w' )
-                    gitfile.write( gitline )
-                    gitfile.close()
 
             traverse_dependencies( destination, traversed )
             os.chdir( ".." )
